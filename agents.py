@@ -17,14 +17,16 @@ def netAgent(network, return_probs=False, incorrect_moves=True, best_move=True):
         def agent(observation, configuration=None):
             board = processObservation(observation)
             input = torch.tensor(board, dtype=torch.float32)
-            output = network(input)
+            with torch.no_grad():
+                output = network(input)
             probs = torch.softmax(output[0], 0)
             return probs, output[1]
     else:
         def agent(observation, configuration=None, incorrect_moves=incorrect_moves, best_move=best_move):
             board = processObservation(observation)
             input = torch.tensor(board, dtype=torch.float32)
-            output = network(input)
+            with torch.no_grad():
+                output = network(input)
             probs = torch.softmax(output[0], 0)
             if incorrect_moves:
                 if best_move:
@@ -39,11 +41,10 @@ def netAgent(network, return_probs=False, incorrect_moves=True, best_move=True):
                         action = torch.argmax(probs).item()
                     return action
                 else:
-                    print("hello there")
                     action = np.random.choice(range(7), p=probs.numpy())
                     while board[action] != 0:
                         probs += probs[action]/6
                         probs[action] = 0
                         action = np.random.choice(range(7), p=probs.numpy())
-                    return action
+                    return int(action)
     return agent

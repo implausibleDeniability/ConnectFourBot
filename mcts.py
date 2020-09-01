@@ -4,7 +4,7 @@ import torch
 
 
 ACTIONS_N = 7
-U_COEF = 4
+U_COEF = 2
 MCTS_WAVES = 300
 TEMPERATURE = 0.5
 
@@ -42,6 +42,7 @@ def mcts(observation, state, agent, against):
             policy.append(0)
         else:
             policy.append(child.number)
+    print(policy)
     policy = np.array(policy)
     policy = policy ** (1 / TEMPERATURE)
     policy = policy / policy.sum()
@@ -58,9 +59,9 @@ def wave(node, agent, trainer, wave_n):
     qs = []
     for i, child in enumerate(node.links):
         if child is None:
-            qs.append(U_COEF * (0.3 + node.probs[i]) * (wave_n ** 0.5))
+            qs.append(U_COEF * (0.2 + node.probs[i]) * (wave_n ** 0.5))
         else:
-            qs.append(child.value / child.number + U_COEF * (0.3 + node.probs[i]) * (wave_n ** 0.5) / (child.number + 1))
+            qs.append(child.value / child.number + U_COEF * (0.2 + node.probs[i]) * (wave_n ** 0.5) / (child.number + 1))
         
     
     action = int(np.argmax(qs))

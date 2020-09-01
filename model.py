@@ -24,7 +24,7 @@ class SimpleNet(torch.nn.Module):
 
 class ComplexNet(torch.nn.Module):
     def __init__(self, input, actions):
-        super(SimpleNet, self).__init__()
+        super(ComplexNet, self).__init__()
         self.layer1 = torch.nn.Linear(input, 64)
         self.layer2 = torch.nn.Linear(64, 64)
         self.layer3 = torch.nn.Linear(64, 64)
@@ -49,4 +49,4 @@ class ComplexNet(torch.nn.Module):
         actions = self.action_layer(x)
         value = self.value_layer(x)
         value = self.tanh(value)
-        return 
+        return actions, value

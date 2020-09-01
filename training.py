@@ -3,22 +3,23 @@ from torch import nn
 import numpy as np
 from kaggle_environments import make
 
-from model import SimpleNet
+from model import SimpleNet, ComplexNet
 from mcts import mcts
 from agents import netAgent, processObservation
 
 
-model = SimpleNet(42, 7)
-defaultModel = SimpleNet(42, 7)
+model = ComplexNet(42, 7)
+defaultModel = ComplexNet(42, 7)
 
+log = open("log.txt", 'w')
 
-optimizer = torch.optim.SGD(model.parameters(), lr = 0.03)
-for epoch in range(10):
+optimizer = torch.optim.SGD(model.parameters(), lr = 0.01)
+for epoch in range(1000):
     training_data = []
     agent = netAgent(model, return_probs=True)
     against = netAgent(defaultModel, incorrect_moves=False)
 
-    for game in range(4):
+    for game in range(8):
         turn = np.random.randint(2)
         env = make("connectx")
         if turn == 0:
@@ -47,14 +48,14 @@ for epoch in range(10):
             netoutput = model(netinput)
             loss += (netoutput[1] - example['result']) ** 2
             loss -= torch.sum(torch.tensor(state[1], dtype=torch.float32) * torch.nn.functional.log_softmax(netoutput[0], 0))
-    loss.backward()
+    # loss.backward()
     optimizer.step()
     
     agent = netAgent(model, incorrect_moves=False, best_move=False)
     against = netAgent(defaultModel, incorrect_moves=False, best_move=False)
     result = 0
     for i in range(100):
-        env = make('connectx')
+        env = make('connectx', debug=True)
         laststate = env.run([agent, against])[-1]
         if laststate[0]['reward'] is None:
             gamereward = -1
@@ -74,11 +75,13 @@ for epoch in range(10):
             gamereward = laststate[1]['reward']
         result += (gamereward + 1) / 2
         print(gamereward + 1, end='')
-    
+        
+    log.write("Epoch " + str(epoch) + " Result: " + str(result) + "\n")
     print("Test result: ", result)
     if (result > 140):
+        torch.save(defaultModel.state_dict(), "parameters_simple.pth")
         defaultModel.load_state_dict(model.state_dict())
         print("switch")
+        log.write("Switch\n")
 
 
-torch.save(model.state_dict(), "parameters_simple.pth")
