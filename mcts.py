@@ -5,7 +5,7 @@ import torch
 
 ACTIONS_N = 7
 U_COEF = 2
-MCTS_WAVES = 300
+MCTS_WAVES = 800
 TEMPERATURE = 0.5
 
 CURRENT_N = 1
@@ -42,7 +42,7 @@ def mcts(observation, state, agent, against):
             policy.append(0)
         else:
             policy.append(child.number)
-    print(policy)
+    # print(policy)
     policy = np.array(policy)
     policy = policy ** (1 / TEMPERATURE)
     policy = policy / policy.sum()
