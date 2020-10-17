@@ -1,8 +1,8 @@
-from model import SimpleNet
+from model import ResNet
 import torch
 
-net = SimpleNet(42, 7)
-net.load_state_dict(torch.load('parameters_simple.pth'))
+net = ResNet(42, 7, 128)
+net.load_state_dict(torch.load('parameters_simple128.pth'))
 file = open("submission2.py", 'w')
 
 string = f"""
@@ -184,7 +184,7 @@ class ComplexNet(torch.nn.Module):
 
 
 model = SimpleNet(42, 7)
-model.load_state_dict({str(net.state_dict())})
+model.load_state_dict({net.state_dict()})
 
 def agent():
     return netAgent(model, incorrect_moves=False)"""

@@ -5,10 +5,9 @@ import torch
 
 ACTIONS_N = 7
 U_COEF = 2
-MCTS_WAVES = 800
+MCTS_WAVES = 400
 TEMPERATURE = 0.5
 
-CURRENT_N = 1
 
 class Node:
     def __init__(self, value, probs, done=False):
@@ -19,20 +18,20 @@ class Node:
         self.links = [None] * ACTIONS_N
 
 
-def mcts(observation, state, agent, against):
-    probs, value = agent(observation)
-    root = Node(value, probs)
-    current_n = 0
+def mcts(observation, state, agent, against, root=None):
+    if root is None:
+        probs, value = agent(observation)
+        root = Node(value, probs)
+    current_n = root.number
 
-    for i in range(MCTS_WAVES):
+    n_traverses = MCTS_WAVES - current_n
+    for i in range(n_traverses):
         current_n += 1
         env = make("connectx", debug = False)
         if (observation['mark'] == 1):
             trainer = env.train([None, against])
-        elif (observation['mark'] == 2):
-            trainer = env.train([against, None]) 
         else:
-            print("problem with order")
+            trainer = env.train([against, None]) 
         env.state = state.copy()
         wave(root, agent, trainer, current_n)
 
@@ -42,12 +41,11 @@ def mcts(observation, state, agent, against):
             policy.append(0)
         else:
             policy.append(child.number)
-    # print(policy)
     policy = np.array(policy)
     policy = policy ** (1 / TEMPERATURE)
     policy = policy / policy.sum()
 
-    return policy
+    return policy, root
     
         
 def wave(node, agent, trainer, wave_n):
@@ -67,7 +65,6 @@ def wave(node, agent, trainer, wave_n):
     action = int(np.argmax(qs))
     if node.links[action] is None:
         obs, reward, done, info = trainer.step(action)
-        # print(obs, reward, done, info)
         probs, value = agent(obs)
         if done:
             value = reward
@@ -75,6 +72,7 @@ def wave(node, agent, trainer, wave_n):
             value = torch.tensor(-1.0)
         node.links[action] = Node(value, probs, done)
         return value
+    
     obs, reward, done, info = trainer.step(action)
     value = wave(node.links[action], agent, trainer, wave_n)
     node.value += value
