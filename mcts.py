@@ -5,8 +5,8 @@ import torch
 
 ACTIONS_N = 7
 U_COEF = 2
-MCTS_WAVES = 400
-TEMPERATURE = 0.5
+MCTS_WAVES = 100
+TEMPERATURE = 0.3
 
 
 class Node:
@@ -17,15 +17,13 @@ class Node:
         self.done = done
         self.links = [None] * ACTIONS_N
 
-
+    
 def mcts(observation, state, agent, against, root=None):
-    if root is None:
-        probs, value = agent(observation)
-        root = Node(value, probs)
+    probs, value = agent(observation)
+    root = Node(value, probs)
     current_n = root.number
 
-    n_traverses = MCTS_WAVES - current_n
-    for i in range(n_traverses):
+    for i in range(MCTS_WAVES):
         current_n += 1
         env = make("connectx", debug = False)
         if (observation['mark'] == 1):
@@ -45,7 +43,7 @@ def mcts(observation, state, agent, against, root=None):
     policy = policy ** (1 / TEMPERATURE)
     policy = policy / policy.sum()
 
-    return policy, root
+    return policy
     
         
 def wave(node, agent, trainer, wave_n):

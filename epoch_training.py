@@ -24,6 +24,8 @@ def getdata(agent, against, num, num_workers):
         data = selfplay(agent, against, num)
     
     return data
+
+
 def selfplay(agent, against, num):
     training_data = []
     for game in range(num):
@@ -39,14 +41,15 @@ def selfplay(agent, against, num):
 
         root = None
         while not done:
-            policy, root = mcts(observation, env.state,
-                                agent, against, root=root)
+            policy = mcts(observation, env.state,
+                                agent, against)
+            # print(observation)
             action = int(np.random.choice(range(7), p=policy))
+            states.append([processObservation(observation), policy])
+            # print(turn, processObservation(observation).reshape(6, 7), policy, sep='\n')
             observation, reward, done, info = trainer.step(action)
             if reward == None:
                 reward = -1
-            root = root.links[action]
-            states.append([processObservation(observation), policy])
         print("|", end='')
         training_data.append({'states': states, 'result': reward})
     return training_data
